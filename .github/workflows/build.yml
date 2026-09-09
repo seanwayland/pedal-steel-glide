@@ -90,7 +90,7 @@ jobs:
         if: matrix.name == 'macos'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-macOS
+          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-macOS.zip
           path: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-macOS.zip
           if-no-files-found: error
 
@@ -98,7 +98,7 @@ jobs:
         if: matrix.name == 'linux'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-Linux
+          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-Linux.zip
           path: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-Linux.zip
           if-no-files-found: error
 
@@ -106,6 +106,6 @@ jobs:
         if: matrix.name == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-Windows
+          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-Windows.exe
           path: packaging/Output/*.exe
           if-no-files-found: error
