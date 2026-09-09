@@ -88,7 +88,7 @@ public:
             else if (m.isNoteOff())
                 handleNoteOff (out, s, m.getNoteNumber());
             else if (m.isPitchWheel())
-                globalBendSemis = ((m.getPitchWheelValue() - 8192) / 8191.0f) * p.wheelRangeSemis;
+                globalBendSemis = ((float) (m.getPitchWheelValue() - 8192) / 8191.0f) * p.wheelRangeSemis;
             else if (isVibratoSource (m))
                 modAmount = juce::jlimit (0.0f, 1.0f, vibratoSourceValue (m) / 127.0f);
             else if (m.isController() && m.getControllerNumber() == 7)
@@ -153,7 +153,7 @@ private:
 
     float velToGlideMs (int vel) const
     {
-        const float soft = 1.0f - juce::jlimit (0.0f, 1.0f, vel / 127.0f);
+        const float soft = 1.0f - juce::jlimit (0.0f, 1.0f, (float) vel / 127.0f);
         return p.glideMinMs + std::pow (soft, juce::jmax (0.1f, p.glideCurve))
                               * (p.glideMaxMs - p.glideMinMs);
     }
@@ -194,7 +194,7 @@ private:
         {
             auto& v = voices[(size_t) i];
             if (v.note < 0) continue;
-            const float eff = v.note + currentNoteBend (v, evtMs);
+            const float eff = (float) v.note + currentNoteBend (v, evtMs);
             if (std::abs ((float) n - eff) <= p.legatoSemitones) { match = i; break; }
         }
 
