@@ -79,7 +79,9 @@ jobs:
         if: matrix.name == 'windows'
         shell: pwsh
         run: |
-          & "$Env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe" packaging\installer.iss
+          $iscc = "${Env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { $iscc = "iscc" }
+          & $iscc packaging\installer.iss
           Get-ChildItem packaging\Output
 
       # --- upload ---------------------------------------------------------
