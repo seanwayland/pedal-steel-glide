@@ -1,0 +1,55 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux,   os: ubuntu-latest }
+          - { name: macos,   os: macos-latest }
+          - { name: windows, os: windows-latest }
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux deps
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype-dev \
+            libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev \
+            libxrandr-dev libxrender-dev libglu1-mesa-dev libcurl4-openssl-dev ninja-build
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: juce-${{ matrix.name }}-8.0.6
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: PedalSteelGlide-${{ matrix.name }}
+          path: |
+            build/PedalSteelGlide_artefacts/**/*.vst3
+            build/PedalSteelGlide_artefacts/**/*.component
+            build/PedalSteelGlide_artefacts/**/Standalone/*
+          if-no-files-found: warn
