@@ -1,0 +1,22 @@
+Pedal Steel Glide - a MIDI-effect plugin
+
+Insert it BEFORE an instrument (as a MIDI insert / note FX). It turns legato
+playing into velocity-controlled pitch-bend glides, like a pedal steel:
+play a note within the "Legato Interval" of the one you're holding and the
+held note bends into it instead of retriggering. The pitch wheel bends
+everything on top; aftertouch adds a per-voice vibrato.
+
+Each voice is its own MIDI channel with its own pitch bend, so chords glide
+independently - the receiving instrument must be in MPE / MIDI Mono mode
+(base channel = "Master Channel", pitch-bend range = "Bend Range").
+
+Set "Polyphony" to 1 for a single-channel monophonic mode that works with
+any synth and needs no MPE.
+
+Installs:
+  VST3        -> /Library/Audio/Plug-Ins/VST3
+  AU (MIDI FX)-> /Library/Audio/Plug-Ins/Components
+  Standalone  -> /Applications
+
+Free software under the GNU GPL v3. Source, and the full license text:
+  https://github.com/seanwayland/pedal-steel-glide

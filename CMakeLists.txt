@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(PedalSteelGlide VERSION 1.0.0 LANGUAGES C CXX)
+# Identity. The two quoted lines below are also parsed verbatim by
+# apple-signing/sign-and-notarize.sh - keep them as `NAME "value"` (one space).
+set(PROJECT_NAME "PedalSteelGlide")
+set(PRODUCT_NAME "Pedal Steel Glide")
+set(COMPANY_NAME "Wayland Audio")
+set(BUNDLE_ID "com.seanwayland.pedalsteelglide")
+file(STRINGS VERSION CURRENT_VERSION)
+
+project(${PROJECT_NAME} VERSION ${CURRENT_VERSION} LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,10 +27,10 @@ FetchContent_Declare(JUCE
 FetchContent_MakeAvailable(JUCE)
 
 # --- the plugin --------------------------------------------------------------
-juce_add_plugin(PedalSteelGlide
-    PLUGIN_NAME "Pedal Steel Glide"
-    COMPANY_NAME "Wayland Audio"
-    BUNDLE_ID "com.seanwayland.pedalsteelglide"
+juce_add_plugin(${PROJECT_NAME}
+    PLUGIN_NAME "${PRODUCT_NAME}"
+    COMPANY_NAME "${COMPANY_NAME}"
+    BUNDLE_ID "${BUNDLE_ID}"
     PLUGIN_MANUFACTURER_CODE Wayl
     PLUGIN_CODE Psgl
     IS_MIDI_EFFECT TRUE
@@ -32,7 +40,7 @@ juce_add_plugin(PedalSteelGlide
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE
     FORMATS AU VST3 Standalone
-    PRODUCT_NAME "Pedal Steel Glide")
+    PRODUCT_NAME "${PRODUCT_NAME}")
 
 target_sources(PedalSteelGlide PRIVATE
     source/PluginProcessor.cpp

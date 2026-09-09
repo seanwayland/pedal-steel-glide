@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  PRODUCT: "Pedal Steel Glide"
+  ARTEFACTS: build/PedalSteelGlide_artefacts/Release
+
 jobs:
   build:
     strategy:
@@ -20,6 +24,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read version
+        id: v
+        shell: bash
+        run: echo "version=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_OUTPUT"
 
       - name: Install Linux deps
         if: matrix.name == 'linux'
@@ -46,12 +55,55 @@ jobs:
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Upload
+      # --- packaging -------------------------------------------------------
+
+      - name: Package (macOS - the layout apple-signing/sign-and-notarize.sh expects)
+        if: matrix.name == 'macos'
+        run: |
+          mkdir -p stage/VST3 stage/AU stage/Standalone
+          cp -R "$ARTEFACTS/VST3/$PRODUCT.vst3"          stage/VST3/
+          cp -R "$ARTEFACTS/AU/$PRODUCT.component"       stage/AU/
+          cp -R "$ARTEFACTS/Standalone/$PRODUCT.app"     stage/Standalone/
+          cd stage && zip -qyr "../$PRODUCT-${{ steps.v.outputs.version }}-macOS.zip" .
+
+      - name: Package (Linux - zip the plugin + standalone)
+        if: matrix.name == 'linux'
+        run: |
+          mkdir -p "stage/$PRODUCT"
+          cp -R "$ARTEFACTS/VST3/$PRODUCT.vst3"        "stage/$PRODUCT/"
+          cp    "$ARTEFACTS/Standalone/$PRODUCT"       "stage/$PRODUCT/" || true
+          cp    README.md LICENSE                      "stage/$PRODUCT/"
+          cd stage && zip -qr "../$PRODUCT-${{ steps.v.outputs.version }}-Linux.zip" "$PRODUCT"
+
+      - name: Package (Windows - Inno Setup installer)
+        if: matrix.name == 'windows'
+        shell: pwsh
+        run: |
+          & "$Env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe" packaging\installer.iss
+          Get-ChildItem packaging\Output
+
+      # --- upload ---------------------------------------------------------
+
+      - name: Upload macOS zip
+        if: matrix.name == 'macos'
         uses: actions/upload-artifact@v4
         with:
-          name: PedalSteelGlide-${{ matrix.name }}
-          path: |
-            build/PedalSteelGlide_artefacts/**/*.vst3
-            build/PedalSteelGlide_artefacts/**/*.component
-            build/PedalSteelGlide_artefacts/**/Standalone/*
-          if-no-files-found: warn
+          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-macOS
+          path: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-macOS.zip
+          if-no-files-found: error
+
+      - name: Upload Linux zip
+        if: matrix.name == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-Linux
+          path: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-Linux.zip
+          if-no-files-found: error
+
+      - name: Upload Windows installer
+        if: matrix.name == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PRODUCT }}-${{ steps.v.outputs.version }}-Windows
+          path: packaging/Output/*.exe
+          if-no-files-found: error
